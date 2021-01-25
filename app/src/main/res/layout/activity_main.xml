@@ -39,8 +39,15 @@
     <ListView
         android:id="@+id/lvNewDevices"
         android:layout_width="match_parent"
-        android:layout_height="500dp"
+        android:layout_height="400dp"
         android:layout_marginTop="100dp" />
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/heartRateChart"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_marginTop="120dp" />
 
     <Button
         android:layout_width="wrap_content"

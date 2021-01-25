@@ -7,7 +7,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -256,7 +259,12 @@ public class BluetoothConnectionService {
                     bytes = mmInStream.read(buffer);
                     String incomingMessage = new String(buffer, 0, bytes);
                     Log.d(TAG, "InputStream: " + incomingMessage);
-                } catch (IOException e) {
+
+                    Intent incomingMessageIntent = new Intent("incomingMessage");
+                    incomingMessageIntent.putExtra("theMessage", incomingMessage);
+                    LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
+
+                    } catch (IOException e) {
                     Log.e(TAG, "write: Error reading Input Stream. " + e.getMessage() );
                     break;
                 }
@@ -278,7 +286,9 @@ public class BluetoothConnectionService {
         public void cancel() {
             try {
                 mmSocket.close();
-            } catch (IOException e) { }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
