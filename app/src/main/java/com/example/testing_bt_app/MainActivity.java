@@ -33,6 +33,7 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
@@ -118,7 +119,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         break;
                 }
             }
-
         }
 
     };
@@ -346,7 +346,24 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     public void startBTConnection() {
-        startBTConnection(mBTDevice, MY_UUID_INSECURE);
+        Set<BluetoothDevice> Devices = mBluetoothAdapter.getBondedDevices();
+        if(mBTDevice == null) {
+            Log.d(TAG, String.valueOf(Devices.size()));
+            for (BluetoothDevice bt: Devices) {
+                // Add all the available devices to the list
+                Log.d(TAG, bt.getName());
+                if(bt.getName().equals("HC-05")) {
+                    mBTDevice = mBluetoothAdapter.getRemoteDevice(bt.getAddress());
+                    try {
+                        startBTConnection(mBTDevice, MY_UUID_INSECURE);
+                    }catch (NullPointerException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } else {
+            startBTConnection(mBTDevice, MY_UUID_INSECURE);
+        }
     }
 
     /*
@@ -354,7 +371,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     * */
     public void startBTConnection(BluetoothDevice device, UUID uuid) {
         Log.d(TAG, "startBTConnection: Initializing RFCOM Bluetooth Connection");
-
+        mBluetoothConnection = new BluetoothConnectionService(MainActivity.this);
         mBluetoothConnection.startClient(device, uuid);
     }
 
@@ -448,7 +465,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Log.d(TAG, "Trying to pair with " + deviceName);
             mBTDevices.get(position).createBond();
             mBTDevice = mBTDevices.get(position);
-            mBluetoothConnection = new BluetoothConnectionService(MainActivity.this);
         }
     }
 }
