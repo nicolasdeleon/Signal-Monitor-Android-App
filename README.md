@@ -13,8 +13,8 @@
 " target="_blank"><img src="http://img.youtube.com/vi/gn4bRTFicZw/0.jpg" 
 alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
-4. En el celular asegurarse que en _Ajustes > Desarrollador > Depuración por USB_ esta activado
-5. Volver a android studio y a la derecha del iconito de _Run 'app'_ les debería aparecer su celular, de ser así correr la app
+4. En el celular asegurarse que en _Ajustes > Desarrollador > Depuración por USB_ esté activado
+5. Volver a android studio y a la derecha del iconito de _Run 'app'_ ▶️les debería aparecer su celular, de ser así correr la app
 
 ## Para conectar la app con el HC-05
 
@@ -24,6 +24,6 @@ alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
     Acá pueden suceder 2 escenarios, que aparezca o que no aparezca.
 
-4. APARECE) Hacer click en el HC-05 de la lista y apretar START CONNECTION, les podría pedir una clave _1234_ y después se debería conectar. El modulo HC-05 debería pasar a titilar menos seguido y con rafagas de 2. Ir de aca al paso 5
-4. NO APARECE) Ir a bluetooth donde aparecen todos los dispositivos y intentar vincularse con el HC-05, debería solicitarles la clave _1234_ o directamente aparecerles que estan vinculados y no pasa mas nada. Una vez hecho esto, volver a la app y apretar directamente START CONNECTION. Esto debería establecer la conexión con el módulo y debería arrancar a titilar mas lento con rafagas de 2. Ir de aca al paso 5
+4. SI APARECE) Hacer click en el HC-05 de la lista y apretar START CONNECTION, les podría pedir una clave _1234_ y después se debería conectar. El modulo HC-05 debería pasar a titilar menos seguido y con rafagas de 2. Ir al último paso
+4. SI NO APARECE) Ir a bluetooth donde aparecen todos los dispositivos y intentar vincularse con el HC-05, debería solicitarles la clave _1234_ o directamente aparecerles que estan vinculados y no pasa mas nada. Una vez hecho esto, volver a la app y apretar directamente START CONNECTION. Esto debería establecer la conexión con el módulo y debería arrancar a titilar mas lento con rafagas de 2. Ir al último paso
 5. Una vez conectado, recordar que el protocolo para enviar los datos es enviar mensajes del estilo "[DATA DEL CORAZON]-[DATA SP02]-[DATA DE LA TEMPERATURA]". De no coincidir con el formato, no se plotea nada. Los gráficos aparecen apenas empieza a recibir información la app
