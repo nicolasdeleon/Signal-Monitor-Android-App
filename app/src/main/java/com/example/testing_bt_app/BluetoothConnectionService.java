@@ -94,19 +94,10 @@ public class BluetoothConnectionService {
 
             //talk about this is in the 3rd
             if(socket != null){
-                connected(socket,mmDevice);
+                connected(socket);
             }
 
             Log.i(TAG, "END mAcceptThread ");
-        }
-
-        public void cancel() {
-            Log.d(TAG, "cancel: Canceling AcceptThread.");
-            try {
-                mmServerSocket.close();
-            } catch (IOException e) {
-                Log.e(TAG, "cancel: Close of AcceptThread ServerSocket failed. " + e.getMessage() );
-            }
         }
 
     }
@@ -165,7 +156,7 @@ public class BluetoothConnectionService {
             }
 
             //will talk about this in the 3rd video
-            connected(mmSocket,mmDevice);
+            connected(mmSocket);
         }
         public void cancel() {
             try {
@@ -283,16 +274,16 @@ public class BluetoothConnectionService {
         }
 
         /* Call this from the main activity to shutdown the connection */
-        public void cancel() {
+        /*public void cancel() {
             try {
                 mmSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
-    private void connected(BluetoothSocket mmSocket, BluetoothDevice mmDevice) {
+    private void connected(BluetoothSocket mmSocket) {
         Log.d(TAG, "connected: Starting.");
 
         // Start the thread to manage the connection and perform transmissions
@@ -308,7 +299,7 @@ public class BluetoothConnectionService {
      */
     public void write(byte[] out) {
         // Create temporary object
-        ConnectedThread r;
+        // ConnectedThread r;
 
         // Synchronize a copy of the ConnectedThread
         Log.d(TAG, "write: Write Called.");

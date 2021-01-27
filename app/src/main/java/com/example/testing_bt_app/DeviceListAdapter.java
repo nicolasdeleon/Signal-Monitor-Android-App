@@ -13,9 +13,9 @@ import java.util.ArrayList;
 
 public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> {
 
-    private LayoutInflater mLayoutInflater;
-    private ArrayList<BluetoothDevice> mDevices;
-    private int  mViewResourceId;
+    private final LayoutInflater mLayoutInflater;
+    private final ArrayList<BluetoothDevice> mDevices;
+    private final int  mViewResourceId;
 
     public DeviceListAdapter(Context context, int tvResourceId, ArrayList<BluetoothDevice> devices){
         super(context, tvResourceId,devices);

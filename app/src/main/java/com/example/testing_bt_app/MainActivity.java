@@ -11,7 +11,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -22,17 +21,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
-
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,8 +33,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     BluetoothAdapter mBluetoothAdapter;
     Button btnEnableDisable_Discoverable;
 
-    GraphInterface heartGraph, oxiGraph, tempGraph;
-    LineChart oxiChart, tempChart;
+    GraphInterface heartGraph, oxyGraph, tempGraph;
 
     BluetoothConnectionService mBluetoothConnection;
 
@@ -63,6 +53,23 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public ArrayList<BluetoothDevice> mBTDevices = new ArrayList<>();
     public DeviceListAdapter mDeviceListAdapter;
     ListView lvnewDevices;
+
+    /*
+    * Data is expected to come in a String format, separated by -
+    * Ex: [HEART SIGNAL VAL]-[OXYGEN VAL]-[TEMPERATURE VAL]
+    * */
+    private HashMap<Character, String> parse_incoming_data(String incoming_bt_data) {
+        HashMap<Character, String> parsed_out = new HashMap<>();
+        String[] parts = incoming_bt_data.split("-");
+        if(parts.length == 3) {
+            parsed_out.put('H', parts[0]);
+            parsed_out.put('O', parts[1]);
+            parsed_out.put('T', parts[2]);
+        }
+        return parsed_out;
+    }
+
+    // ---------------- START BROADCAST RECEIVERS DEFINITION ---------------------
 
     // Create a BroadcastReceiver object from class BroadcastReceiver
     private final BroadcastReceiver mBroadcastReceiver1 = new BroadcastReceiver() {
@@ -170,6 +177,33 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     };
 
+    /*
+    * mReceiver is the broadcast receiver called when data is sent via bluetooth to the app
+    * */
+    BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String text = intent.getStringExtra("theMessage");
+            if(lvnewDevices.isShown()) {
+                lvnewDevices.setVisibility(View.GONE);
+                heartGraph.mChart.setVisibility(View.VISIBLE);
+                oxyGraph.mChart.setVisibility(View.VISIBLE);
+                tempGraph.mChart.setVisibility(View.VISIBLE);
+            }
+            if(plotData) {
+                plotData = false;
+                HashMap<Character, String> data = parse_incoming_data(text);
+                if(!data.isEmpty()) {
+                    heartGraph.addEntry(data.get('H'));
+                    oxyGraph.addEntry(data.get('O'));
+                    tempGraph.addEntry(data.get('T'));
+                }
+            }
+        }
+    };
+
+    // ---------------- END BROADCAST RECEIVERS DEFINITION ---------------------
+
     @Override
     protected void onDestroy() {
         Log.d(TAG, "onDestroy: called.");
@@ -185,142 +219,84 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // ------------------------------------ CHARTS CONFIG AND INIT -------------------------------------
 
+        // ---- CHARTS CONFIG AND INIT ----
         heartGraph = new GraphInterface(
                 findViewById(R.id.heartRateChart),
                 "Real Time Heart Plot",
                 10f
         );
 
-        oxiGraph = new GraphInterface(
+        oxyGraph = new GraphInterface(
                 findViewById(R.id.OxiChart),
-                "Real Time Heart Plot",
+                "Real Time SPO2",
                 10f
         );
 
         tempGraph = new GraphInterface(
                 findViewById(R.id.TempChart),
-                "Real Time Heart Plot",
+                "Real Time Temperature",
                 10f
         );
+        // ---- END CHARTS CONFIG AND INIT ----
 
+        // ---- BUTTONS DEFINITION ----
+        Button btnONOFF = (Button) findViewById(R.id.btnONOFF);
         btnEnableDisable_Discoverable = (Button) findViewById(R.id.btnDiscoverable_on_off);
-
         btnStartConnection = (Button) findViewById(R.id.btnStartConnection);
         btnSend = (Button) findViewById(R.id.btnSend);
+
+        btnONOFF.setOnClickListener(view -> {
+            Log.d(TAG, "onClick: enabling/disabling bluetooth.");
+            enableDisableBT();
+        });
+
+        btnStartConnection.setOnClickListener(view -> startBTConnection());
+
+        btnSend.setOnClickListener(view -> {
+            byte[] bytes = editText.getText().toString().getBytes(Charset.defaultCharset());
+            mBluetoothConnection.write(bytes);
+            editText.setText("");
+        });
+
+        // ---- END BUTTONS DEFINITION ----
+
+        // ---- EDIT TEXT DEFINITION ----
+
         editText = (EditText) findViewById(R.id.editText);
-
-
         lvnewDevices = (ListView) findViewById(R.id.lvNewDevices);
         lvnewDevices.setOnItemClickListener(MainActivity.this);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter("incomingMessage"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mReceiver, new IntentFilter("incomingMessage")
+        );
 
         // Broadcasts when band state changes (ie:pairing)
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         registerReceiver(mBroadcastReceiver4, filter);
 
-        Button btnONOFF = (Button) findViewById(R.id.btnONOFF);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        btnONOFF.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(TAG, "onClick: enabling/disabling bluetooth.");
-                enableDisableBT();
-            }
-        });
-
-        btnStartConnection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startBTConnection();
-            }
-        });
-
-        btnSend.setOnClickListener(new View.OnClickListener(){
-           @Override
-           public void onClick (View view) {
-               byte[] bytes = editText.getText().toString().getBytes(Charset.defaultCharset());
-               mBluetoothConnection.write(bytes);
-
-               editText.setText("");
-           }
-        });
 
         startPlot();
     }
 
-    private void addEntry(String input_data) {
-        LineData data = heartGraph.mChart.getData();
-        if(data != null) {
-            ILineDataSet set = data.getDataSetByIndex(0);
-            if(set == null) {
-                set = createSet();
-                data.addDataSet(set);
-            }
-            int intFromString = 0;
-            try {
-                intFromString = Integer.parseInt(input_data.trim());
-            } catch (NumberFormatException nfe) {
-                // do something
-                System.out.println(input_data + " is not a number");
-            }
-            Log.d(TAG, "Adding number " + intFromString);
-            data.addEntry(new Entry(set.getEntryCount(), intFromString), 0);
-            data.notifyDataChanged();
-
-            heartGraph.mChart.notifyDataSetChanged();
-            heartGraph.mChart.setMaxVisibleValueCount(150);
-            heartGraph.mChart.moveViewToX(data.getEntryCount());
-        }
-    }
-
-    private LineDataSet createSet() {
-        LineDataSet set = new LineDataSet(null, "Dynamic Data");
-        set.setAxisDependency(YAxis.AxisDependency.LEFT);
-        set.setDrawValues(false);
-        set.setDrawCircles(false);
-        set.setLineWidth(3f);
-        set.setColor(Color.RED);
-        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-        set.setCubicIntensity((0.2f));
-        return set;
-    }
-
-    BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String text = intent.getStringExtra("theMessage");
-            if(lvnewDevices.isShown()) {
-                lvnewDevices.setVisibility(View.GONE);
-                heartGraph.mChart.setVisibility(View.VISIBLE);
-                oxiGraph.mChart.setVisibility(View.VISIBLE);
-                tempGraph.mChart.setVisibility(View.VISIBLE);
-            }
-            if(plotData) {
-                addEntry(text);
-                plotData = false;
-            }
-        }
-    };
-
+    /*
+    * Starts a thread that loops and every 10 miliseconds turns plotData into true
+    * After each data entry, plotData turns to false and doesn't admit data. The refresh-rate is set
+    * to be max of 10 ms that is the time it takes to the thread to turn the var into true
+    * */
     private void startPlot() {
         if(plotThread != null) {
             plotThread.interrupt();
         }
 
-        plotThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true) {
-                    plotData = true;
-                    try {
-                        Thread.sleep(10);
-                    }catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        plotThread = new Thread(() -> {
+            while(true) {
+                plotData = true;
+                try {
+                    Thread.sleep(10);
+                }catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         });

@@ -6,7 +6,10 @@ import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 public class GraphInterface {
 
@@ -71,5 +74,39 @@ public class GraphInterface {
         // ------- RIGHT Y AXIS ----------------
         YAxis rightAxis = mChart.getAxisRight();
         rightAxis.setTextColor(Color.WHITE);
+    }
+
+    protected void addEntry(String input_data) {
+        if(data != null) {
+            ILineDataSet set = data.getDataSetByIndex(0);
+            if(set == null) {
+                set = createSet();
+                data.addDataSet(set);
+            }
+            int intFromString = 0;
+            try {
+                intFromString = Integer.parseInt(input_data.trim());
+            } catch (NumberFormatException nfe) {
+                System.out.println(input_data + " is not a number");
+            }
+            data.addEntry(new Entry(set.getEntryCount(), intFromString), 0);
+            data.notifyDataChanged();
+
+            mChart.notifyDataSetChanged();
+            mChart.setMaxVisibleValueCount(150);
+            mChart.moveViewToX(data.getEntryCount());
+        }
+    }
+
+    private LineDataSet createSet() {
+        LineDataSet set = new LineDataSet(null, "Dynamic Data");
+        set.setAxisDependency(YAxis.AxisDependency.LEFT);
+        set.setDrawValues(false);
+        set.setDrawCircles(false);
+        set.setLineWidth(3f);
+        set.setColor(Color.RED);
+        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        set.setCubicIntensity((0.2f));
+        return set;
     }
 }
