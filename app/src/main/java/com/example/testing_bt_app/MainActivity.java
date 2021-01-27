@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     BluetoothAdapter mBluetoothAdapter;
     Button btnEnableDisable_Discoverable;
 
-    LineChart heartRateChart;
+    LineChart heartRateChart, oxiChart, tempChart;
 
     BluetoothConnectionService mBluetoothConnection;
 
@@ -185,6 +185,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        // ------------------------------------ CHARTS CONFIG AND INIT -------------------------------------
+
         heartRateChart = (LineChart) findViewById(R.id.heartRateChart);
         heartRateChart.getDescription().setEnabled(true);
         heartRateChart.getDescription().setText("Real Time Heart Plot");
@@ -213,18 +216,95 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         xl.setEnabled(true);
 
         YAxis leftAxis = heartRateChart.getAxisLeft();
-        leftAxis.setTextColor(Color.WHITE);
+        leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(true);
         leftAxis.setAxisMaximum(10f);
-        leftAxis.setAxisMinimum(0f);
+        leftAxis.setAxisMinimum(-10f);
         leftAxis.setDrawGridLines(true);
 
-        YAxis rightAxis = heartRateChart.getAxisRight();
-        rightAxis.setEnabled(false);
-
-        heartRateChart.getAxisLeft().setDrawGridLines(false);
+        heartRateChart.setVisibleYRangeMaximum(20f, YAxis.AxisDependency.LEFT);
+        heartRateChart.getAxisRight().setTextColor(Color.WHITE);
         heartRateChart.getXAxis().setDrawGridLines(false);
         heartRateChart.setDrawBorders(false);
+
+        oxiChart = (LineChart) findViewById(R.id.OxiChart);
+        oxiChart.getDescription().setEnabled(true);
+        oxiChart.getDescription().setText("Oxigen Plot");
+        oxiChart.setTouchEnabled(false);
+        oxiChart.setDragEnabled(false);
+        oxiChart.setScaleEnabled(false);
+        oxiChart.setDrawGridBackground(true);
+        oxiChart.setPinchZoom(false);
+        oxiChart.setBackgroundColor(Color.WHITE);
+
+        LineData Oxidata = new LineData();
+        Oxidata.setValueTextColor(Color.RED);
+        oxiChart.setData(data);
+
+        // get the legend (only possible after setting data)
+        Legend oxi_l = oxiChart.getLegend();
+
+        // modify the legend ...
+        oxi_l.setForm(Legend.LegendForm.LINE);
+        oxi_l.setTextColor(Color.WHITE);
+
+        XAxis oxi_xl = oxiChart.getXAxis();
+        oxi_xl.setTextColor(Color.WHITE);
+        oxi_xl.setDrawGridLines(true);
+        oxi_xl.setAvoidFirstLastClipping(true);
+        oxi_xl.setEnabled(true);
+
+        YAxis oxi_leftAxis = oxiChart.getAxisLeft();
+        oxi_leftAxis.setTextColor(Color.WHITE);
+        oxi_leftAxis.setDrawGridLines(true);
+        oxi_leftAxis.setAxisMaximum(10f);
+        oxi_leftAxis.setAxisMinimum(0f);
+        oxi_leftAxis.setDrawGridLines(true);
+
+        oxiChart.getAxisLeft().setDrawGridLines(false);
+        oxiChart.getXAxis().setDrawGridLines(false);
+        oxiChart.setDrawBorders(false);
+
+        tempChart = (LineChart) findViewById(R.id.TempChart);
+        tempChart.getDescription().setEnabled(true);
+        tempChart.getDescription().setText("Real Time Tempreature Plot");
+        tempChart.setTouchEnabled(false);
+        tempChart.setDragEnabled(false);
+        tempChart.setScaleEnabled(false);
+        tempChart.setDrawGridBackground(true);
+        tempChart.setPinchZoom(false);
+        tempChart.setBackgroundColor(Color.WHITE);
+
+        LineData temp_data = new LineData();
+        temp_data.setValueTextColor(Color.RED);
+        tempChart.setData(data);
+
+        // get the legend (only possible after setting data)
+        Legend temp_l = tempChart.getLegend();
+
+        // modify the legend ...
+        temp_l.setForm(Legend.LegendForm.LINE);
+        temp_l.setTextColor(Color.WHITE);
+
+        XAxis temp_xl = tempChart.getXAxis();
+        temp_xl.setTextColor(Color.WHITE);
+        temp_xl.setDrawGridLines(true);
+        temp_xl.setAvoidFirstLastClipping(true);
+        temp_xl.setEnabled(true);
+
+        YAxis temp_leftAxis = tempChart.getAxisLeft();
+        temp_leftAxis.setTextColor(Color.WHITE);
+        temp_leftAxis.setDrawGridLines(true);
+        temp_leftAxis.setAxisMaximum(10f);
+        temp_leftAxis.setAxisMinimum(0f);
+        temp_leftAxis.setDrawGridLines(true);
+
+        tempChart.getAxisLeft().setDrawGridLines(false);
+        tempChart.getXAxis().setDrawGridLines(false);
+        tempChart.setDrawBorders(false);
+
+        // ------------------------------------ END CHARTS CONFIG AND INIT -------------------------------------
+
 
         btnEnableDisable_Discoverable = (Button) findViewById(R.id.btnDiscoverable_on_off);
 
@@ -301,6 +381,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private LineDataSet createSet() {
         LineDataSet set = new LineDataSet(null, "Dynamic Data");
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
+        set.setDrawValues(false);
+        set.setDrawCircles(false);
         set.setLineWidth(3f);
         set.setColor(Color.RED);
         set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
@@ -315,6 +397,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             if(lvnewDevices.isShown()) {
                 lvnewDevices.setVisibility(View.GONE);
                 heartRateChart.setVisibility(View.VISIBLE);
+                oxiChart.setVisibility(View.VISIBLE);
+                tempChart.setVisibility(View.VISIBLE);
             }
             if(plotData) {
                 addEntry(text);
