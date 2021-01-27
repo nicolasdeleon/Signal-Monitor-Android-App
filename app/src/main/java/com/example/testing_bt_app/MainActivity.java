@@ -42,7 +42,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     BluetoothAdapter mBluetoothAdapter;
     Button btnEnableDisable_Discoverable;
 
-    LineChart heartRateChart, oxiChart, tempChart;
+    GraphInterface heartGraph, oxiGraph, tempGraph;
+    LineChart oxiChart, tempChart;
 
     BluetoothConnectionService mBluetoothConnection;
 
@@ -184,127 +185,25 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
         // ------------------------------------ CHARTS CONFIG AND INIT -------------------------------------
 
-        heartRateChart = (LineChart) findViewById(R.id.heartRateChart);
-        heartRateChart.getDescription().setEnabled(true);
-        heartRateChart.getDescription().setText("Real Time Heart Plot");
-        heartRateChart.setTouchEnabled(false);
-        heartRateChart.setDragEnabled(false);
-        heartRateChart.setScaleEnabled(false);
-        heartRateChart.setDrawGridBackground(true);
-        heartRateChart.setPinchZoom(false);
-        heartRateChart.setBackgroundColor(Color.WHITE);
+        heartGraph = new GraphInterface(
+                findViewById(R.id.heartRateChart),
+                "Real Time Heart Plot",
+                10f
+        );
 
-        LineData data = new LineData();
-        data.setValueTextColor(Color.RED);
-        heartRateChart.setData(data);
+        oxiGraph = new GraphInterface(
+                findViewById(R.id.OxiChart),
+                "Real Time Heart Plot",
+                10f
+        );
 
-        // get the legend (only possible after setting data)
-        Legend l = heartRateChart.getLegend();
-
-        // modify the legend ...
-        l.setForm(Legend.LegendForm.LINE);
-        l.setTextColor(Color.WHITE);
-
-        XAxis xl = heartRateChart.getXAxis();
-        xl.setTextColor(Color.WHITE);
-        xl.setDrawGridLines(true);
-        xl.setAvoidFirstLastClipping(true);
-        xl.setEnabled(true);
-
-        YAxis leftAxis = heartRateChart.getAxisLeft();
-        leftAxis.setTextColor(Color.BLACK);
-        leftAxis.setDrawGridLines(true);
-        leftAxis.setAxisMaximum(10f);
-        leftAxis.setAxisMinimum(-10f);
-        leftAxis.setDrawGridLines(true);
-
-        heartRateChart.setVisibleYRangeMaximum(20f, YAxis.AxisDependency.LEFT);
-        heartRateChart.getAxisRight().setTextColor(Color.WHITE);
-        heartRateChart.getXAxis().setDrawGridLines(false);
-        heartRateChart.setDrawBorders(false);
-
-        oxiChart = (LineChart) findViewById(R.id.OxiChart);
-        oxiChart.getDescription().setEnabled(true);
-        oxiChart.getDescription().setText("Oxigen Plot");
-        oxiChart.setTouchEnabled(false);
-        oxiChart.setDragEnabled(false);
-        oxiChart.setScaleEnabled(false);
-        oxiChart.setDrawGridBackground(true);
-        oxiChart.setPinchZoom(false);
-        oxiChart.setBackgroundColor(Color.WHITE);
-
-        LineData Oxidata = new LineData();
-        Oxidata.setValueTextColor(Color.RED);
-        oxiChart.setData(data);
-
-        // get the legend (only possible after setting data)
-        Legend oxi_l = oxiChart.getLegend();
-
-        // modify the legend ...
-        oxi_l.setForm(Legend.LegendForm.LINE);
-        oxi_l.setTextColor(Color.WHITE);
-
-        XAxis oxi_xl = oxiChart.getXAxis();
-        oxi_xl.setTextColor(Color.WHITE);
-        oxi_xl.setDrawGridLines(true);
-        oxi_xl.setAvoidFirstLastClipping(true);
-        oxi_xl.setEnabled(true);
-
-        YAxis oxi_leftAxis = oxiChart.getAxisLeft();
-        oxi_leftAxis.setTextColor(Color.WHITE);
-        oxi_leftAxis.setDrawGridLines(true);
-        oxi_leftAxis.setAxisMaximum(10f);
-        oxi_leftAxis.setAxisMinimum(0f);
-        oxi_leftAxis.setDrawGridLines(true);
-
-        oxiChart.getAxisLeft().setDrawGridLines(false);
-        oxiChart.getXAxis().setDrawGridLines(false);
-        oxiChart.setDrawBorders(false);
-
-        tempChart = (LineChart) findViewById(R.id.TempChart);
-        tempChart.getDescription().setEnabled(true);
-        tempChart.getDescription().setText("Real Time Tempreature Plot");
-        tempChart.setTouchEnabled(false);
-        tempChart.setDragEnabled(false);
-        tempChart.setScaleEnabled(false);
-        tempChart.setDrawGridBackground(true);
-        tempChart.setPinchZoom(false);
-        tempChart.setBackgroundColor(Color.WHITE);
-
-        LineData temp_data = new LineData();
-        temp_data.setValueTextColor(Color.RED);
-        tempChart.setData(data);
-
-        // get the legend (only possible after setting data)
-        Legend temp_l = tempChart.getLegend();
-
-        // modify the legend ...
-        temp_l.setForm(Legend.LegendForm.LINE);
-        temp_l.setTextColor(Color.WHITE);
-
-        XAxis temp_xl = tempChart.getXAxis();
-        temp_xl.setTextColor(Color.WHITE);
-        temp_xl.setDrawGridLines(true);
-        temp_xl.setAvoidFirstLastClipping(true);
-        temp_xl.setEnabled(true);
-
-        YAxis temp_leftAxis = tempChart.getAxisLeft();
-        temp_leftAxis.setTextColor(Color.WHITE);
-        temp_leftAxis.setDrawGridLines(true);
-        temp_leftAxis.setAxisMaximum(10f);
-        temp_leftAxis.setAxisMinimum(0f);
-        temp_leftAxis.setDrawGridLines(true);
-
-        tempChart.getAxisLeft().setDrawGridLines(false);
-        tempChart.getXAxis().setDrawGridLines(false);
-        tempChart.setDrawBorders(false);
-
-        // ------------------------------------ END CHARTS CONFIG AND INIT -------------------------------------
-
+        tempGraph = new GraphInterface(
+                findViewById(R.id.TempChart),
+                "Real Time Heart Plot",
+                10f
+        );
 
         btnEnableDisable_Discoverable = (Button) findViewById(R.id.btnDiscoverable_on_off);
 
@@ -354,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private void addEntry(String input_data) {
-        LineData data = heartRateChart.getData();
+        LineData data = heartGraph.mChart.getData();
         if(data != null) {
             ILineDataSet set = data.getDataSetByIndex(0);
             if(set == null) {
@@ -372,9 +271,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             data.addEntry(new Entry(set.getEntryCount(), intFromString), 0);
             data.notifyDataChanged();
 
-            heartRateChart.notifyDataSetChanged();
-            heartRateChart.setMaxVisibleValueCount(150);
-            heartRateChart.moveViewToX(data.getEntryCount());
+            heartGraph.mChart.notifyDataSetChanged();
+            heartGraph.mChart.setMaxVisibleValueCount(150);
+            heartGraph.mChart.moveViewToX(data.getEntryCount());
         }
     }
 
@@ -396,9 +295,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             String text = intent.getStringExtra("theMessage");
             if(lvnewDevices.isShown()) {
                 lvnewDevices.setVisibility(View.GONE);
-                heartRateChart.setVisibility(View.VISIBLE);
-                oxiChart.setVisibility(View.VISIBLE);
-                tempChart.setVisibility(View.VISIBLE);
+                heartGraph.mChart.setVisibility(View.VISIBLE);
+                oxiGraph.mChart.setVisibility(View.VISIBLE);
+                tempGraph.mChart.setVisibility(View.VISIBLE);
             }
             if(plotData) {
                 addEntry(text);
