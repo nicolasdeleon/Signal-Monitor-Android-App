@@ -15,28 +15,28 @@ public class GraphInterface {
 
     LineChart mChart;
     LineData data;
+    String name = "Default Graph";
 
     public GraphInterface(LineChart _chart, String name, float scale) {
+        this.name = name;
         mChart = _chart;
         data = new LineData();
-        init(name, scale);
+        init(scale);
         initLegend();
         initXAxis();
         initYAxis(scale);
-
     }
 
-    private void init(String name, float scale) {
+    private void init(float scale) {
         // --------- CHART INIT -----------
-        mChart.getDescription().setEnabled(true);
-        mChart.getDescription().setText(name);
+        mChart.getDescription().setEnabled(false);
         mChart.setTouchEnabled(false);
         mChart.setDragEnabled(false);
         mChart.setScaleEnabled(false);
         mChart.setDrawGridBackground(true);
         mChart.setPinchZoom(false);
         mChart.setBackgroundColor(Color.WHITE);
-        mChart.setVisibleYRangeMaximum(scale*2, YAxis.AxisDependency.LEFT);
+        mChart.setVisibleYRangeMaximum(scale, YAxis.AxisDependency.LEFT);
         mChart.setDrawBorders(true);
 
         // ---------- DATA INIT ------------
@@ -50,7 +50,6 @@ public class GraphInterface {
 
         // modify the legend ...
         l.setForm(Legend.LegendForm.LINE);
-        l.setTextColor(Color.WHITE);
     }
 
     private void initXAxis() {
@@ -59,7 +58,6 @@ public class GraphInterface {
         xl.setDrawGridLines(true);
         xl.setAvoidFirstLastClipping(true);
         xl.setEnabled(true);
-        xl.setDrawGridLines(false);
     }
 
     private void initYAxis(float scale) {
@@ -68,7 +66,7 @@ public class GraphInterface {
         leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(true);
         leftAxis.setAxisMaximum(scale);
-        leftAxis.setAxisMinimum(-scale);
+        leftAxis.setAxisMinimum(0);
         leftAxis.setDrawGridLines(true);
 
         // ------- RIGHT Y AXIS ----------------
@@ -76,30 +74,25 @@ public class GraphInterface {
         rightAxis.setTextColor(Color.WHITE);
     }
 
-    protected void addEntry(String input_data) {
+    protected void addEntry(Integer input_data) {
         if(data != null) {
             ILineDataSet set = data.getDataSetByIndex(0);
             if(set == null) {
                 set = createSet();
                 data.addDataSet(set);
             }
-            int intFromString = 0;
-            try {
-                intFromString = Integer.parseInt(input_data.trim());
-            } catch (NumberFormatException nfe) {
-                System.out.println(input_data + " is not a number");
-            }
-            data.addEntry(new Entry(set.getEntryCount(), intFromString), 0);
+
+            data.addEntry(new Entry(set.getEntryCount(), input_data), 0);
             data.notifyDataChanged();
 
             mChart.notifyDataSetChanged();
-            mChart.setMaxVisibleValueCount(150);
+            mChart.setVisibleXRangeMaximum(75);
             mChart.moveViewToX(data.getEntryCount());
         }
     }
 
     private LineDataSet createSet() {
-        LineDataSet set = new LineDataSet(null, "Dynamic Data");
+        LineDataSet set = new LineDataSet(null, name);
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
         set.setDrawValues(false);
         set.setDrawCircles(false);

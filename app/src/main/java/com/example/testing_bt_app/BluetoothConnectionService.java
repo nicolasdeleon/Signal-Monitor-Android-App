@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -15,17 +16,21 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
-
-/**
- * Created by User on 12/21/2016.
- */
 
 public class BluetoothConnectionService {
     private static final String TAG = "BluetoothConnectionServ";
 
     private static final String appName = "MYAPP";
+
+    private final char STARTER = 0xFF;
+
+    private final int MESSAGE_SIZE = 5;
 
     private static final UUID MY_UUID_INSECURE =
             UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -238,25 +243,47 @@ public class BluetoothConnectionService {
             mmOutStream = tmpOut;
         }
 
+        public ArrayList<Integer> bytesToInts(byte[] bytes, int length) {
+            ArrayList<Integer> res = new ArrayList<>(length);
+            for(int i=0; i < bytes.length && i < length; i++) {
+                int val = 0;
+                val = val | (bytes[i] & 0xFF);
+                res.add(val);
+            }
+            return res;
+        }
+
         public void run(){
-            byte[] buffer = new byte[1024];  // buffer store for the stream
 
             int bytes; // bytes returned from read()
+            Integer availableBytes = 0;
 
             // Keep listening to the InputStream until an exception occurs
             while (true) {
                 // Read from the InputStream
+
+                // Keep listening to the InputStream until an exception occurs
                 try {
-                    bytes = mmInStream.read(buffer);
-                    String incomingMessage = new String(buffer, 0, bytes);
-                    Log.d(TAG, "InputStream: " + incomingMessage);
-
-                    Intent incomingMessageIntent = new Intent("incomingMessage");
-                    incomingMessageIntent.putExtra("theMessage", incomingMessage);
-                    LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
-
-                    } catch (IOException e) {
-                    Log.e(TAG, "write: Error reading Input Stream. " + e.getMessage() );
+                    availableBytes = mmInStream.available();
+                    if(availableBytes > MESSAGE_SIZE ) {
+                        byte[] buffer = new byte[availableBytes];  // buffer store for the stream
+                        // Read from the InputStream
+                        bytes = mmInStream.read(buffer);
+                        Log.d("mmInStream.read(buffer)", new String(buffer));
+                        Integer b = new Integer(buffer[0]);
+                        if(bytes > 0 && b == -1) {
+                            // Send the obtained bytes to the UI activity
+                            byte [] buffer2 = new byte[availableBytes];
+                            System.arraycopy(buffer, 0, buffer2, 0, availableBytes);
+                            ArrayList<Integer> bytes2Ints = bytesToInts(buffer2, bytes);
+                            Intent incomingMessageIntent = new Intent("btIncomingMessage");
+                            incomingMessageIntent.putIntegerArrayListExtra("btMessage", bytes2Ints);
+                            LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
+                        }
+                    }
+                } catch (IOException e) {
+                    Log.d("Error reading", e.getMessage());
+                    e.printStackTrace();
                     break;
                 }
             }
@@ -265,7 +292,7 @@ public class BluetoothConnectionService {
         //Call this from the main activity to send data to the remote device
         public void write(byte[] bytes) {
             String text = new String(bytes, Charset.defaultCharset());
-            Log.d(TAG, "write: Writing to outputstream: " + text);
+            Log.d(TAG, "write: Writing to output stream: " + text);
             try {
                 mmOutStream.write(bytes);
             } catch (IOException e) {
@@ -274,13 +301,13 @@ public class BluetoothConnectionService {
         }
 
         /* Call this from the main activity to shutdown the connection */
-        /*public void cancel() {
+        public void cancel() {
             try {
                 mmSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }*/
+        }
     }
 
     private void connected(BluetoothSocket mmSocket) {

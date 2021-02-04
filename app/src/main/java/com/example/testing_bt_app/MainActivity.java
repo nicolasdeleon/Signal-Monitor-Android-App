@@ -1,5 +1,6 @@
 package com.example.testing_bt_app;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -20,15 +21,24 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
     private static final String TAG = "MainActivity";
+
+    private final int INVALID = 255;
 
     BluetoothAdapter mBluetoothAdapter;
     Button btnEnableDisable_Discoverable;
@@ -42,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     EditText editText;
 
+    TextView O2Text, HRText;
+
     private boolean plotData = false;
     private Thread plotThread;
 
@@ -53,21 +65,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public ArrayList<BluetoothDevice> mBTDevices = new ArrayList<>();
     public DeviceListAdapter mDeviceListAdapter;
     ListView lvnewDevices;
-
-    /*
-    * Data is expected to come in a String format, separated by -
-    * Ex: [HEART SIGNAL VAL]-[OXYGEN VAL]-[TEMPERATURE VAL]
-    * */
-    private HashMap<Character, String> parse_incoming_data(String incoming_bt_data) {
-        HashMap<Character, String> parsed_out = new HashMap<>();
-        String[] parts = incoming_bt_data.split("-");
-        if(parts.length == 3) {
-            parsed_out.put('H', parts[0]);
-            parsed_out.put('O', parts[1]);
-            parsed_out.put('T', parts[2]);
-        }
-        return parsed_out;
-    }
 
     // ---------------- START BROADCAST RECEIVERS DEFINITION ---------------------
 
@@ -95,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         break;
                 }
             }
-
         }
 
     };
@@ -183,20 +179,34 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String text = intent.getStringExtra("theMessage");
+
+            // Receive data from broadcast
+            ArrayList<Integer> values = intent.getIntegerArrayListExtra("btMessage");
+
+            // Dismiss btDevices List
             if(lvnewDevices.isShown()) {
                 lvnewDevices.setVisibility(View.GONE);
                 heartGraph.mChart.setVisibility(View.VISIBLE);
                 oxyGraph.mChart.setVisibility(View.VISIBLE);
                 tempGraph.mChart.setVisibility(View.VISIBLE);
             }
+
+            // Plot data
             if(plotData) {
                 plotData = false;
-                HashMap<Character, String> data = parse_incoming_data(text);
-                if(!data.isEmpty()) {
-                    heartGraph.addEntry(data.get('H'));
-                    oxyGraph.addEntry(data.get('O'));
-                    tempGraph.addEntry(data.get('T'));
+                Log.d(TAG, "INCOMING MESSAGE: " + values.toString());
+                Integer EXPECTED_BUFFER_SIZE = 6;
+                if(values.size() == EXPECTED_BUFFER_SIZE) {
+                    // values[0] -> RESERVED FOR SYNC. FLAG
+                    if(values.get(1) != INVALID) {
+                       heartGraph.addEntry(values.get(1));
+                    }
+                    if(values.get(2) != INVALID) oxyGraph.addEntry(values.get(2));
+                    if(values.get(3) != INVALID) tempGraph.addEntry(values.get(3));
+                    if(values.get(4) != INVALID) O2Text.setText("O2: " + values.get(4).toString());
+                    if(values.get(5) != INVALID) HRText.setText("HR: " + values.get(5).toString() + " bpm");
+                } else {
+                    Log.d(TAG, "Incorrect Message Length: " + values.size());
                 }
             }
         }
@@ -213,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         unregisterReceiver(mBroadcastReceiver2);
         unregisterReceiver(mBroadcastReceiver3);
         unregisterReceiver(mBroadcastReceiver4);
+        unregisterReceiver(mReceiver);
     }
 
     @Override
@@ -223,20 +234,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // ---- CHARTS CONFIG AND INIT ----
         heartGraph = new GraphInterface(
                 findViewById(R.id.heartRateChart),
-                "Real Time Heart Plot",
-                10f
+                "ECG",
+                256f
         );
 
         oxyGraph = new GraphInterface(
                 findViewById(R.id.OxiChart),
-                "Real Time SPO2",
-                10f
+                "SPO2",
+                256f
         );
 
         tempGraph = new GraphInterface(
                 findViewById(R.id.TempChart),
-                "Real Time Temperature",
-                10f
+                "Temperature",
+                256f
         );
         // ---- END CHARTS CONFIG AND INIT ----
 
@@ -264,12 +275,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // ---- EDIT TEXT DEFINITION ----
 
         editText = (EditText) findViewById(R.id.editText);
+        O2Text = (TextView) findViewById(R.id.O2Text);
+        HRText = (TextView) findViewById(R.id.HRText);
+
         lvnewDevices = (ListView) findViewById(R.id.lvNewDevices);
         lvnewDevices.setOnItemClickListener(MainActivity.this);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
-                mReceiver, new IntentFilter("incomingMessage")
+                mReceiver, new IntentFilter("btIncomingMessage")
         );
+
+        // Catch  BluetoothAdapter state change in mBroadcastReceiver1
+        IntentFilter BTIntent = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mBroadcastReceiver1, BTIntent);
+
+
+        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
+        registerReceiver(mBroadcastReceiver2, intentFilter);
+
+        IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        registerReceiver(mBroadcastReceiver3, discoverDevicesIntent);
 
         // Broadcasts when band state changes (ie:pairing)
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
@@ -343,17 +368,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivity(enableBTIntent);
 
-            // Catch  BluetoothAdapter state change in mBroadcastReceiver1
-            IntentFilter BTIntent = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-            registerReceiver(mBroadcastReceiver1, BTIntent);
         }
         if(mBluetoothAdapter.isEnabled()){
             Log.d(TAG, "enableDisableBT: disabling BT");
             mBluetoothAdapter.disable();
 
-            // Catch  BluetoothAdapter state change in mBroadcastReceiver1
-            IntentFilter BTIntent = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-            registerReceiver(mBroadcastReceiver1, BTIntent);
         }
     }
 
@@ -364,8 +383,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
         startActivity(discoverableIntent);
 
-        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
-        registerReceiver(mBroadcastReceiver2, intentFilter);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -374,18 +391,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if(mBluetoothAdapter.isDiscovering()) {
             mBluetoothAdapter.cancelDiscovery();
             Log.d(TAG, "btnDiscover: Canceling discovery");
-
             checkBTPermissions();
-
             mBluetoothAdapter.startDiscovery();
-            IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            registerReceiver(mBroadcastReceiver3, discoverDevicesIntent);
         }
         if(!mBluetoothAdapter.isDiscovering()) {
             checkBTPermissions();
             mBluetoothAdapter.startDiscovery();
-            IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            registerReceiver(mBroadcastReceiver3, discoverDevicesIntent);
         }
     }
 
