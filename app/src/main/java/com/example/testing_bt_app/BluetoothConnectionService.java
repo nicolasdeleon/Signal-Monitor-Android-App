@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ public class BluetoothConnectionService {
 
     private final char STARTER = 0xFF;
 
-    private final int MESSAGE_SIZE = 5;
+    private final int MESSAGE_SIZE = 15;
 
     private static final UUID MY_UUID_INSECURE =
             UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -275,7 +276,32 @@ public class BluetoothConnectionService {
                             // Send the obtained bytes to the UI activity
                             byte [] buffer2 = new byte[availableBytes];
                             System.arraycopy(buffer, 0, buffer2, 0, availableBytes);
-                            ArrayList<Integer> bytes2Ints = bytesToInts(buffer2, bytes);
+
+                            byte[] hrCharst1 = new byte[4];
+                            byte[] hrCharst2 = new byte[4];
+                            byte[] oxyChars = new byte[4];
+                            byte[] temp02HrChars = new byte[3];
+
+                            System.arraycopy(buffer2, 1, hrCharst1, 0, 4);
+                            System.arraycopy(buffer2, 5, hrCharst2, 0, 4);
+                            System.arraycopy(buffer2, 9, oxyChars, 0, 4);
+                            System.arraycopy(buffer2, 13, temp02HrChars, 0, 3);
+
+                            Integer hrValuet1 = ByteBuffer.wrap(hrCharst1).getInt();
+                            Integer hrValuet2 = ByteBuffer.wrap(hrCharst2).getInt();
+
+                            Integer oxyValue = ByteBuffer.wrap(oxyChars).getInt();
+
+                            ArrayList<Integer> bytes2Ints = bytesToInts(temp02HrChars, 3);
+
+                            bytes2Ints.add(0, hrValuet1);
+                            bytes2Ints.add(1, hrValuet2);
+                            bytes2Ints.add(2, oxyValue);
+
+                            Log.d("hrValuet1", hrValuet1.toString());
+                            Log.d("hrValuet2", hrValuet2.toString());
+                            Log.d("oxyValue", oxyValue.toString());
+
                             Intent incomingMessageIntent = new Intent("btIncomingMessage");
                             incomingMessageIntent.putIntegerArrayListExtra("btMessage", bytes2Ints);
                             LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);

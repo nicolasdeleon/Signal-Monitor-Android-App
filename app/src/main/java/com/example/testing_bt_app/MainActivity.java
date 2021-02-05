@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     BluetoothAdapter mBluetoothAdapter;
     Button btnEnableDisable_Discoverable;
 
-    GraphInterface heartGraph, oxyGraph, tempGraph;
+    GraphInterface heartGraph, oxyGraph;
 
     BluetoothConnectionService mBluetoothConnection;
 
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     EditText editText;
 
-    TextView O2Text, HRText;
+    TextView O2Text, HRText, tempText;
 
     private boolean plotData = false;
     private Thread plotThread;
@@ -188,26 +188,31 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 lvnewDevices.setVisibility(View.GONE);
                 heartGraph.mChart.setVisibility(View.VISIBLE);
                 oxyGraph.mChart.setVisibility(View.VISIBLE);
-                tempGraph.mChart.setVisibility(View.VISIBLE);
             }
 
             // Plot data
-            if(plotData) {
-                plotData = false;
-                Log.d(TAG, "INCOMING MESSAGE: " + values.toString());
-                Integer EXPECTED_BUFFER_SIZE = 6;
-                if(values.size() == EXPECTED_BUFFER_SIZE) {
-                    // values[0] -> RESERVED FOR SYNC. FLAG
-                    if(values.get(1) != INVALID) {
-                       heartGraph.addEntry(values.get(1));
-                    }
-                    if(values.get(2) != INVALID) oxyGraph.addEntry(values.get(2));
-                    if(values.get(3) != INVALID) tempGraph.addEntry(values.get(3));
-                    if(values.get(4) != INVALID) O2Text.setText("O2: " + values.get(4).toString());
-                    if(values.get(5) != INVALID) HRText.setText("HR: " + values.get(5).toString() + " bpm");
+            Log.d(TAG, "INCOMING MESSAGE: " + values.toString());
+            Integer EXPECTED_BUFFER_SIZE = 6;
+            if(values.size() == EXPECTED_BUFFER_SIZE) {
+                if(values.get(0) < 256000 && values.get(0) > 10) {
+                    heartGraph.addEntry(values.get(0));
                 } else {
-                    Log.d(TAG, "Incorrect Message Length: " + values.size());
                 }
+                if(values.get(1) < 256000 && values.get(1) > 10) {
+                    heartGraph.addEntry(values.get(1));
+                } else {
+                }
+                if(values.get(1) < 256000 && values.get(2) > 10) {
+                    oxyGraph.addEntry(values.get(2));
+                } else {
+
+                }
+                tempText.setText("C⁰ " + values.get(3));
+                O2Text.setText("O2: " + values.get(4).toString());
+                HRText.setText("HR: " + values.get(5).toString() + " bpm");
+            } else {
+
+                Log.d(TAG, "Incorrect Message Length: " + values.size());
             }
         }
     };
@@ -235,20 +240,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         heartGraph = new GraphInterface(
                 findViewById(R.id.heartRateChart),
                 "ECG",
-                256f
+                4096f
         );
 
         oxyGraph = new GraphInterface(
                 findViewById(R.id.OxiChart),
                 "SPO2",
-                256f
+                -1
         );
 
-        tempGraph = new GraphInterface(
-                findViewById(R.id.TempChart),
-                "Temperature",
-                256f
-        );
         // ---- END CHARTS CONFIG AND INIT ----
 
         // ---- BUTTONS DEFINITION ----
@@ -277,6 +277,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         editText = (EditText) findViewById(R.id.editText);
         O2Text = (TextView) findViewById(R.id.O2Text);
         HRText = (TextView) findViewById(R.id.HRText);
+        tempText = (TextView) findViewById(R.id.tempText);
 
         lvnewDevices = (ListView) findViewById(R.id.lvNewDevices);
         lvnewDevices.setOnItemClickListener(MainActivity.this);
@@ -318,11 +319,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         plotThread = new Thread(() -> {
             while(true) {
                 plotData = true;
-                try {
-                    Thread.sleep(10);
-                }catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
         });
 

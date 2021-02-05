@@ -39,6 +39,10 @@ public class GraphInterface {
         mChart.setVisibleYRangeMaximum(scale, YAxis.AxisDependency.LEFT);
         mChart.setDrawBorders(true);
 
+        if(scale == -1)
+            mChart.setAutoScaleMinMaxEnabled(true);
+
+
         // ---------- DATA INIT ------------
         data.setValueTextColor(Color.RED);
         mChart.setData(data);
@@ -65,9 +69,9 @@ public class GraphInterface {
         YAxis leftAxis = mChart.getAxisLeft();
         leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(true);
-        leftAxis.setAxisMaximum(scale);
-        leftAxis.setAxisMinimum(0);
-        leftAxis.setDrawGridLines(true);
+
+        if(scale != -1)
+            leftAxis.setAxisMaximum(scale);
 
         // ------- RIGHT Y AXIS ----------------
         YAxis rightAxis = mChart.getAxisRight();
