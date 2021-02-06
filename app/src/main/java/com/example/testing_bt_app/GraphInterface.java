@@ -67,8 +67,9 @@ public class GraphInterface {
     private void initYAxis(float scale) {
         // -------- LEFT Y AXIS ----------------
         YAxis leftAxis = mChart.getAxisLeft();
-        leftAxis.setTextColor(Color.BLACK);
+        leftAxis.setTextColor(Color.WHITE);
         leftAxis.setDrawGridLines(true);
+        leftAxis.setEnabled(false);
 
         if(scale != -1)
             leftAxis.setAxisMaximum(scale);
@@ -78,7 +79,7 @@ public class GraphInterface {
         rightAxis.setTextColor(Color.WHITE);
     }
 
-    protected void addEntry(Integer input_data) {
+    protected void addEntry(Integer input_data, int visibility) {
         if(data != null) {
             ILineDataSet set = data.getDataSetByIndex(0);
             if(set == null) {
@@ -90,7 +91,7 @@ public class GraphInterface {
             data.notifyDataChanged();
 
             mChart.notifyDataSetChanged();
-            mChart.setVisibleXRangeMaximum(75);
+            mChart.setVisibleXRangeMaximum(visibility);
             mChart.moveViewToX(data.getEntryCount());
         }
     }

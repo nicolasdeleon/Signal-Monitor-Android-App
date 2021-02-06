@@ -13,9 +13,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_marginLeft="100dp"
+        android:layout_marginLeft="50dp"
         android:layout_marginTop="-1dp"
-        android:layout_marginRight="194dp"
+        android:layout_marginRight="5dp"
         android:text="ON/OFF" />
 
     <Button
@@ -47,7 +47,7 @@
         android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="150dp"
-        android:layout_marginTop="120dp" />
+        android:layout_marginTop="150dp" />
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/OxiChart"
@@ -55,7 +55,7 @@
         android:layout_width="match_parent"
         android:layout_below="@+id/heartRateChart"
         android:layout_height="150dp"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="30dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -63,7 +63,7 @@
         android:text="C⁰"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="120dp"
-        android:layout_marginLeft="30dp"
+        android:layout_marginLeft="10dp"
         android:id="@+id/tempText"
         />
 
@@ -73,7 +73,7 @@
         android:text="O2"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="120dp"
-        android:layout_marginLeft="80dp"
+        android:layout_marginLeft="90dp"
         android:id="@+id/O2Text"
         />
 
@@ -83,7 +83,7 @@
         android:text="HR"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="120dp"
-        android:layout_marginLeft="130dp"
+        android:layout_marginLeft="170dp"
         android:id="@+id/HRText"
         />
 

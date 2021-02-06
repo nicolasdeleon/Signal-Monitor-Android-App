@@ -192,24 +192,41 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
             // Plot data
             Log.d(TAG, "INCOMING MESSAGE: " + values.toString());
-            Integer EXPECTED_BUFFER_SIZE = 6;
+            Integer EXPECTED_BUFFER_SIZE = 8;
             if(values.size() == EXPECTED_BUFFER_SIZE) {
-                if(values.get(0) < 256000 && values.get(0) > 10) {
-                    heartGraph.addEntry(values.get(0));
-                } else {
+                boolean plotHR = values.get(0) != -1 && values.get(1) != -1 &&
+                        values.get(2) != -1 && values.get(3) != -1;
+                if(plotHR && values.get(0) < 4097 && values.get(0) > 100) {
+                    heartGraph.addEntry(values.get(0), 150);
                 }
-                if(values.get(1) < 256000 && values.get(1) > 10) {
-                    heartGraph.addEntry(values.get(1));
-                } else {
+                if(plotHR && values.get(1) < 4097 && values.get(1) > 100) {
+                    heartGraph.addEntry(values.get(1), 150);
                 }
-                if(values.get(1) < 256000 && values.get(2) > 10) {
-                    oxyGraph.addEntry(values.get(2));
+                if(plotHR && values.get(2) < 4097 && values.get(2) > 100) {
+                    heartGraph.addEntry(values.get(2), 150);
+                }
+                if(plotHR && values.get(3) < 4097 && values.get(3) > 100) {
+                    heartGraph.addEntry(values.get(3), 150);
+                }
+                if(values.get(4) < 256000 && values.get(4) > 10 && values.get(6) != INVALID) {
+                    oxyGraph.addEntry(values.get(4), 85);
+                }
+                if(values.get(5) != INVALID) {
+                    tempText.setText("C⁰ " + values.get(5));
                 } else {
+                    tempText.setText("C⁰ -");
+                }
+                if(values.get(6) != INVALID) {
+                    O2Text.setText("O2: " + values.get(6).toString());
+                } else {
+                    O2Text.setText("O2: -");
+                }
 
+                if(values.get(7) != INVALID) {
+                    HRText.setText("HR: " + values.get(7).toString() + " bpm");
+                } else {
+                    HRText.setText("HR: -");
                 }
-                tempText.setText("C⁰ " + values.get(3));
-                O2Text.setText("O2: " + values.get(4).toString());
-                HRText.setText("HR: " + values.get(5).toString() + " bpm");
             } else {
 
                 Log.d(TAG, "Incorrect Message Length: " + values.size());
