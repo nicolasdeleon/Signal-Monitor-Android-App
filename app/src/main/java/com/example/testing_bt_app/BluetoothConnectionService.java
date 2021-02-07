@@ -247,14 +247,14 @@ public class BluetoothConnectionService {
         public ArrayList<Integer> bytesToInts(byte[] bytes, int length) {
             ArrayList<Integer> res = new ArrayList<>(length);
             for(int i=0; i < bytes.length && i < length; i++) {
-                int val = 0;
+                Integer val = 0;
                 val = val | (bytes[i] & 0xFF);
                 res.add(val);
             }
             return res;
         }
 
-        public void run(){
+        public void run() {
 
             int bytes; // bytes returned from read()
             Integer availableBytes = 0;

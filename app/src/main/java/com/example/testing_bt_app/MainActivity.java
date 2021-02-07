@@ -221,14 +221,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 } else {
                     O2Text.setText("O2: -");
                 }
-
                 if(values.get(7) != INVALID) {
                     HRText.setText("HR: " + values.get(7).toString() + " bpm");
                 } else {
                     HRText.setText("HR: -");
                 }
             } else {
-
                 Log.d(TAG, "Incorrect Message Length: " + values.size());
             }
         }
