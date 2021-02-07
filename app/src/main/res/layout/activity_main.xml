@@ -44,49 +44,54 @@
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/heartRateChart"
-        android:visibility="gone"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_marginTop="150dp" />
+        android:visibility="gone"
+        android:layout_below="@+id/btnDiscoverable_on_off"
+        android:layout_height="120dp"
+        android:layout_marginTop="10dp" />
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/OxiChart"
-        android:visibility="gone"
         android:layout_width="match_parent"
+        android:visibility="gone"
         android:layout_below="@+id/heartRateChart"
-        android:layout_height="150dp"
-        android:layout_marginTop="30dp" />
+        android:layout_height="120dp"
+        android:layout_marginTop="15dp" />
 
-    <TextView
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="C⁰"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="120dp"
-        android:layout_marginLeft="10dp"
-        android:id="@+id/tempText"
-        />
+        android:layout_below="@+id/OxiChart"
+        android:visibility="gone"
+        android:id="@+id/texts"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="O2"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="120dp"
-        android:layout_marginLeft="90dp"
-        android:id="@+id/O2Text"
-        />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="C⁰"
+            android:id="@+id/tempText"
+            />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="HR"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="120dp"
-        android:layout_marginLeft="170dp"
-        android:id="@+id/HRText"
-        />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="O2"
+            android:layout_marginLeft="40dp"
+            android:layout_toRightOf="@+id/tempText"
+            android:id="@+id/O2Text"
+            />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HR"
+            android:layout_marginLeft="40dp"
+            android:layout_toRightOf="@+id/O2Text"
+            android:id="@+id/HRText"
+            />
+        </RelativeLayout>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -21,6 +21,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.w3c.dom.Text;
@@ -49,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     Button btnStartConnection;
     Button btnSend;
+
+    RelativeLayout texts;
 
     EditText editText;
 
@@ -186,8 +189,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             // Dismiss btDevices List
             if(lvnewDevices.isShown()) {
                 lvnewDevices.setVisibility(View.GONE);
+                btnStartConnection.setVisibility(View.GONE);
+                btnSend.setVisibility(View.GONE);
+                editText.setVisibility(View.GONE);
                 heartGraph.mChart.setVisibility(View.VISIBLE);
                 oxyGraph.mChart.setVisibility(View.VISIBLE);
+                texts.setVisibility(View.VISIBLE);
             }
 
             // Plot data
@@ -290,6 +297,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // ---- EDIT TEXT DEFINITION ----
 
         editText = (EditText) findViewById(R.id.editText);
+        texts = (RelativeLayout) findViewById(R.id.texts);
         O2Text = (TextView) findViewById(R.id.O2Text);
         HRText = (TextView) findViewById(R.id.HRText);
         tempText = (TextView) findViewById(R.id.tempText);
